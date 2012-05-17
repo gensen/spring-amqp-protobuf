@@ -1,0 +1,12 @@
+option java_package = "com.gs.amqp";
+option optimize_for = SPEED;
+
+/*********************
+ Compile with
+ cd src/test/protobuf
+ protoc test_message.proto --java_out ../java
+*********************/
+
+message TestThis {
+  required string msg = 1;
+}
