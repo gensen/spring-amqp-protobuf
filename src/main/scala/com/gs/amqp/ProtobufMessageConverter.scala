@@ -1,15 +1,28 @@
 package com.gs.amqp
 
-import com.google.protobuf.{Message => PB}
+import com.google.protobuf.{Message => PB, DynamicMessage}
+import com.google.protobuf.Descriptors.FileDescriptor
 
 import org.springframework.amqp.core.{Message, MessageProperties}
 import org.springframework.amqp.support.converter._
 
-class ProtobufMessageConverter[T <: PB](defaultInstance: T) extends AbstractMessageConverter {
+class ProtobufMessageConverter(descriptor: FileDescriptor) extends AbstractMessageConverter {
   def fromMessage(msg: Message) = try {
-    defaultInstance.newBuilderForType.mergeFrom(msg.getBody).build
+    val parsedMessage = for {
+      name <- getMessageTypeName(msg)
+      messageType <- Option(descriptor.findMessageTypeByName(name))
+    } yield DynamicMessage.parseFrom(messageType, msg.getBody)
+    if (parsedMessage.isEmpty) {
+      throw new MessageConversionException("Unknown message type")
+    }
+    parsedMessage.orNull
   } catch {
     case e => throw new MessageConversionException("Unable to parse the message", e)
+  }
+
+  private def getMessageTypeName(msg: Message): Option[String] = {
+    val headers = msg.getMessageProperties.getHeaders
+    Option(headers.get(ProtobufMessageConverter.MESSAGE_TYPE_NAME)).map(_.toString)
   }
 
   def createMessage(obj: Any, props: MessageProperties): Message = {
@@ -19,8 +32,15 @@ class ProtobufMessageConverter[T <: PB](defaultInstance: T) extends AbstractMess
       val protobuf = obj.asInstanceOf[PB]
       val byteArray = protobuf.toByteArray
       props.setContentLength(byteArray.length)
-      props.setContentType(MessageProperties.CONTENT_TYPE_BYTES)
+      props.setContentType(ProtobufMessageConverter.CONTENT_TYPE_PROTOBUF)
+      props.setHeader(ProtobufMessageConverter.MESSAGE_TYPE_NAME,
+                      protobuf.getDescriptorForType.getName)
       new Message(byteArray, props)
     }
   }
+}
+
+object ProtobufMessageConverter {
+  val MESSAGE_TYPE_NAME = "message_type_name"
+  val CONTENT_TYPE_PROTOBUF = "application/x-google-protobuf"
 }

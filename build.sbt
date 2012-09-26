@@ -1,5 +1,3 @@
-import sbtrelease.Release._
-
 name := "spring-amqp-protobuf"
 
 organization := "com.gs"
@@ -20,4 +18,4 @@ libraryDependencies ++= Seq(
   "org.scalatest"            %% "scalatest"    % "1.7.2"          % "test"
 )
 
-seq(releaseSettings: _*)
+releaseSettings
