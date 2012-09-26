@@ -13,7 +13,7 @@ class ProtobufMessageConverter(descriptor: FileDescriptor) extends AbstractMessa
       messageType <- Option(descriptor.findMessageTypeByName(name))
     } yield DynamicMessage.parseFrom(messageType, msg.getBody)
     if (parsedMessage.isEmpty) {
-      throw new MessageConversionException("Unknown message type")
+      throw new MessageConversionException("Unknown message type %s".format(getMessageTypeName(msg)))
     }
     parsedMessage.orNull
   } catch {
