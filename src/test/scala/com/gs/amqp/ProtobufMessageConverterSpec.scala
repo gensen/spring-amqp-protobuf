@@ -9,6 +9,7 @@ import org.scalatest.FunSpec
 import org.scalatest.matchers.MustMatchers
 
 import org.springframework.amqp.core.{Message, MessageProperties}
+import org.springframework.amqp.AmqpRejectAndDontRequeueException
 
 class ProtobufMessageConverterSpec extends FunSpec with MustMatchers {
   describe("The ProtobufConverter") {
@@ -33,6 +34,13 @@ class ProtobufMessageConverterSpec extends FunSpec with MustMatchers {
       val amqpMsg = new Message(pbMsg.toByteArray, props)
       val msg = converter.fromMessage(amqpMsg)
       msg must be(pbMsg)
+    }
+
+    it("should throw an AmqpRejectAndDontRequeueException if there's no message_type_name") {
+      val amqpMsg = new Message(pbMsg.toByteArray, new MessageProperties)
+      evaluating {
+        converter.fromMessage(amqpMsg)
+      } must produce [AmqpRejectAndDontRequeueException]
     }
   }
 }
