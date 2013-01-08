@@ -10,12 +10,12 @@ publishTo <<= (version) { version: String =>
   else                                   Some("releases"  at nexus + "releases/")
 }
 
-scalaVersion := "2.9.1"
+scalaVersion := "2.10.0"
 
 libraryDependencies ++= Seq(
   "com.google.protobuf"      % "protobuf-java" % "2.4.1",
   "org.springframework.amqp" % "spring-amqp"   % "1.1.0.RELEASE",
-  "org.scalatest"            %% "scalatest"    % "1.7.2"          % "test"
+  "org.scalatest"            %% "scalatest"    % "1.9.1"          % "test"
 )
 
 releaseSettings
